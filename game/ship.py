@@ -5,11 +5,12 @@ import numpy as np
 from .object import GameObject
 
 # Constants for the Ship class
-MAX_SPEED = 10
-MIN_SPEED = -4
+MAX_SPEED = 6
+MIN_SPEED = 0
 TURNING_ANGLE = 6
 HP = 1
-MISSILE_THRESHOLD = 25
+PLAYER_MISSILE_THRESHOLD = 25
+ENEMY_MISSILE_THRESHOLD = 35
 
 
 # Class for ships (agents) in the game world
@@ -28,12 +29,15 @@ class Ship(GameObject):
         super().set_hit_box(points)
         super().rotate(angle)
 
+        self.missile_threshold = PLAYER_MISSILE_THRESHOLD if player else ENEMY_MISSILE_THRESHOLD
+        self.missile_buffer = 0
+
     def move(self):
         super(Ship, self).move()
-        self.missile_threshold += 1
+        self.missile_buffer += 1
 
     def can_fire_missile(self):
-        if self.missile_threshold > MISSILE_THRESHOLD:
-            self.missile_threshold = 0
+        if self.missile_buffer > self.missile_threshold:
+            self.missile_buffer = 0
             return True
         return False

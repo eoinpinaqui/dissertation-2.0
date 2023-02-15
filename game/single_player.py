@@ -92,7 +92,7 @@ class SinglePlayerGame(gym.Env):
     def render(self, mode='human'):
         assert mode in ['human', 'rgb_array'], 'Invalid mode, must be either "human" or "rgb_array"'
         if mode == "human":
-            cv2.imshow("Game", self.canvas)
+            cv2.imshow("Game", self.preprocess_frame())
             cv2.waitKey(25)
         elif mode == "rgb_array":
             return self.canvas
@@ -132,10 +132,6 @@ class SinglePlayerGame(gym.Env):
             self.enemies.append(Ship(ENEMY_MARGIN, WINDOW_HEIGHT // 2, 0, ENEMY_SPEED, player=False))
             self.enemies.append(Ship(WINDOW_WIDTH - ENEMY_MARGIN, WINDOW_HEIGHT // 2, 180, ENEMY_SPEED, player=False))
 
-        # Update the missiles
-        for missile in self.missiles:
-            missile.move()
-
         # Update the enemies
         for enemy in self.enemies:
             # Angle the enemy towards the player and move them
@@ -156,8 +152,15 @@ class SinglePlayerGame(gym.Env):
                         enemy.rotate(min(enemy.turning_angle, angle_to_player - enemy_angle))
                     else:
                         enemy.rotate(max(-enemy.turning_angle, angle_to_player - enemy_angle))
-            print(f'Enemy Angle: {enemy_angle} Required Angle: {angle_to_player}')
             enemy.move()
+
+            # Fire a missile if possible
+            if enemy.can_fire_missile():
+                x_off = round(np.cos(np.radians(enemy.angle)) * (enemy.speed + 16))
+                y_off = round(np.sin(np.radians(enemy.angle)) * (enemy.speed + 16))
+                x_off *= 2
+                y_off *= 2
+                self.missiles.append(Missile(enemy.x + x_off, enemy.y + y_off, enemy.angle))
 
             # Check for collisions
             for other_enemy in self.enemies:
@@ -169,6 +172,24 @@ class SinglePlayerGame(gym.Env):
                 self.enemies.remove(enemy)
 
             if self.player.hit_box.intersects(enemy.hit_box):
+                self.player.decrease_hp()
+
+        # Update the missiles
+        for missile in self.missiles:
+            missile.move()
+
+            # Check for collisions
+            for other_missile in self.missiles:
+                if missile != other_missile and other_missile.hit_box.intersects(missile.hit_box):
+                    self.missiles.remove(missile)
+                    self.missiles.remove(other_missile)
+
+            for enemy in self.enemies:
+                if enemy.hit_box.intersects(missile.hit_box):
+                    self.enemies.remove(enemy)
+                    self.missiles.remove(missile)
+
+            if self.player.hit_box.intersects(missile.hit_box):
                 self.player.decrease_hp()
 
         self.draw_game_on_canvas()
