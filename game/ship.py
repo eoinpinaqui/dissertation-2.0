@@ -32,7 +32,7 @@ class Ship(GameObject):
         super(Ship, self).move()
         self.missile_threshold += 1
 
-    def fire_missile(self):
+    def can_fire_missile(self):
         if self.missile_threshold > MISSILE_THRESHOLD:
             self.missile_threshold = 0
             return True

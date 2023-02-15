@@ -7,6 +7,7 @@ import math
 
 # Local imports
 from .ship import Ship
+from .missile import Missile
 from .object import GameObject
 
 # Constants for the SinglePlayerGame class
@@ -40,9 +41,10 @@ class SinglePlayerGame(gym.Env):
         # Create a canvas to draw the game on
         self.canvas = np.full((WINDOW_WIDTH, WINDOW_HEIGHT, 3), 255, dtype=np.uint8)
 
-        # Create the player and enemies
+        # Create the player, enemies and missiles
         self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 90, 0, player=True)
         self.enemies = []
+        self.missiles = []
 
         # Set time to 0
         self.time = 0
@@ -67,14 +69,17 @@ class SinglePlayerGame(gym.Env):
         self.draw_element_on_canvas(self.player)
         for enemy in self.enemies:
             self.draw_element_on_canvas(enemy)
+        for missile in self.missiles:
+            self.draw_element_on_canvas(missile)
 
     def reset(self):
         # Create a canvas to draw the game on
         self.canvas = np.full((WINDOW_WIDTH, WINDOW_HEIGHT, 3), 255, dtype=np.uint8)
 
-        # Create the player
+        # Create the player, enemies and missiles
         self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 90, 0, player=True)
         self.enemies = []
+        self.missiles = []
 
         # Set time back to 0
         self.time = 0
@@ -114,8 +119,12 @@ class SinglePlayerGame(gym.Env):
             self.player.accelerate()
         elif action == DECELERATE:
             self.player.decelerate()
-        elif action == FIRE_MISSILE:
-            print('missile!')  # No op for now
+        elif action == FIRE_MISSILE and self.player.can_fire_missile():
+            x_off = round(np.cos(np.radians(self.player.angle)) * (self.player.speed + 16))
+            y_off = round(np.sin(np.radians(self.player.angle)) * (self.player.speed + 16))
+            x_off *= 2
+            y_off *= 2
+            self.missiles.append(Missile(self.player.x + x_off, self.player.y + y_off, self.player.angle))
 
         # Update the state of all elements in the game world and draw them on the canvas
         self.player.move()
@@ -123,6 +132,11 @@ class SinglePlayerGame(gym.Env):
             self.enemies.append(Ship(ENEMY_MARGIN, WINDOW_HEIGHT // 2, 0, ENEMY_SPEED, player=False))
             self.enemies.append(Ship(WINDOW_WIDTH - ENEMY_MARGIN, WINDOW_HEIGHT // 2, 180, ENEMY_SPEED, player=False))
 
+        # Update the missiles
+        for missile in self.missiles:
+            missile.move()
+
+        # Update the enemies
         for enemy in self.enemies:
             # Angle the enemy towards the player and move them
             enemy_angle = enemy.angle % 360
