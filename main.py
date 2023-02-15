@@ -18,8 +18,8 @@ def release(key):
     global action
     action = 0
 
-Listener(on_press=press, on_release=release).start()
 
+Listener(on_press=press, on_release=release).start()
 
 env = SinglePlayerGame()
 env.reset()
