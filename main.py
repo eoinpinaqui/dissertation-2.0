@@ -1,5 +1,8 @@
-from game.single_player import SinglePlayerGame
+# Library imports
 from pynput.keyboard import Listener
+
+# Local imports
+from game.single_player import SinglePlayerGame
 
 action = 0
 
