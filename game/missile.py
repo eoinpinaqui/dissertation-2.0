@@ -11,7 +11,7 @@ HP = 1
 
 # Class for missile in the game world
 class Missile(GameObject):
-    def __init__(self, x: int, y: int, angle: int):
+    def __init__(self, x: int, y: int, angle: int, player: bool):
         icon_path = './game/sprites/missile.png'
         super(Missile, self).__init__(icon_path, x, y, 0, 0, MISSILE_SPEED, MISSILE_SPEED, MISSILE_SPEED, HP)
 

@@ -42,7 +42,7 @@ class SinglePlayerGame(gym.Env):
         self.canvas = np.full((WINDOW_WIDTH, WINDOW_HEIGHT, 3), 255, dtype=np.uint8)
 
         # Create the player, enemies and missiles
-        self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 90, 0, player=True)
+        self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 0, 0, player=True)
         self.enemies = []
         self.missiles = []
 
@@ -77,7 +77,7 @@ class SinglePlayerGame(gym.Env):
         self.canvas = np.full((WINDOW_WIDTH, WINDOW_HEIGHT, 3), 255, dtype=np.uint8)
 
         # Create the player, enemies and missiles
-        self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 90, 0, player=True)
+        self.player = Ship(WINDOW_WIDTH // 2, WINDOW_HEIGHT // 2, 0, 0, player=True)
         self.enemies = []
         self.missiles = []
 
@@ -92,7 +92,7 @@ class SinglePlayerGame(gym.Env):
     def render(self, mode='human'):
         assert mode in ['human', 'rgb_array'], 'Invalid mode, must be either "human" or "rgb_array"'
         if mode == "human":
-            cv2.imshow("Game", self.preprocess_frame())
+            cv2.imshow("Game", self.canvas)
             cv2.waitKey(25)
         elif mode == "rgb_array":
             return self.canvas
@@ -175,6 +175,7 @@ class SinglePlayerGame(gym.Env):
                 self.player.decrease_hp()
 
         # Update the missiles
+        enemies_killed_by_missiles = 0
         for missile in self.missiles:
             missile.move()
 
@@ -188,6 +189,7 @@ class SinglePlayerGame(gym.Env):
                 if enemy.hit_box.intersects(missile.hit_box):
                     self.enemies.remove(enemy)
                     self.missiles.remove(missile)
+                    enemies_killed_by_missiles += 1
 
             if self.player.hit_box.intersects(missile.hit_box):
                 self.player.decrease_hp()
@@ -195,7 +197,7 @@ class SinglePlayerGame(gym.Env):
         self.draw_game_on_canvas()
 
         # Calculate the reward
-        reward = REWARD
+        reward = REWARD + enemies_killed_by_missiles
 
         if not self.arena.covers(self.player.hit_box) or self.player.hp <= 0:
             done = True

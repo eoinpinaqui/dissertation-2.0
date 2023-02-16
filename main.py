@@ -28,11 +28,13 @@ env = SinglePlayerGame()
 env.reset()
 done = False
 total_reward = 0
+steps = 0
 while not done:
     next_state, reward, _done, _ = env.step(action)
     total_reward += reward
     done = _done
     env.render()
+    steps += 1
 
 env.close()
 print(total_reward)
